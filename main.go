@@ -35,9 +35,9 @@ func main() {
 
   buf := new(bytes.Buffer)
   zipWriter := zip.NewWriter(buf)
-  defer must(true, zipWriter.Close())
   zipFile := must(zipWriter.Create(fileName))
   zipFile.Write(fileBytes)
+  must(true, zipWriter.Close())
   zipBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
   zipFileName := fmt.Sprintf("%s.zip", fileName)
 
