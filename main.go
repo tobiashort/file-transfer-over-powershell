@@ -1,6 +1,8 @@
 package main
 
 import (
+  "archive/zip"
+  "bytes"
 	"encoding/base64"
 	"flag"
 	"fmt"
@@ -30,12 +32,19 @@ func main() {
   filePath := flag.Arg(0)
   fileName := filepath.Base(filePath)
   fileBytes := must(os.ReadFile(filePath))
-  fileBase64 := base64.StdEncoding.EncodeToString(fileBytes)
+
+  buf := new(bytes.Buffer)
+  zipWriter := zip.NewWriter(buf)
+  defer must(true, zipWriter.Close())
+  zipFile := must(zipWriter.Create(fileName))
+  zipFile.Write(fileBytes)
+  zipBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+  zipFileName := fmt.Sprintf("%s.zip", fileName)
 
   fmt.Printf(`$b64 = '%s'
 $filename = "$env:TEMP\%s"
 $bytes = [Convert]::FromBase64String($b64)
 [IO.File]::WriteAllBytes($filename, $bytes)
 explorer.exe "$env:TEMP"
-`, fileBase64, fileName)
+`, zipBase64, zipFileName)
 }
